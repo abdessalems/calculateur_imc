@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(MyApp());
@@ -8,7 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calculateur d\'IMC',
+      title: 'IMC Calculator',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -23,43 +25,51 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TextEditingController weightController = TextEditingController();
-  TextEditingController heightController = TextEditingController();
-  double bmiResult = 0.0;
+  double weight = 0.0;
+  double height = 0.0;
+  double bmi = 0.0;
+  String bmiCategory = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Calculateur d\'IMC'),
+        title: Text('IMC Calculator'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: weightController,
+          children: <Widget>[
+            TextFormField(
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Poids (en kg)'),
+              decoration: InputDecoration(labelText: 'Enter Weight (kg)'),
+              onChanged: (value) {
+                setState(() {
+                  weight = double.parse(value);
+                });
+              },
             ),
-            SizedBox(height: 16.0),
-            TextField(
-              controller: heightController,
+            TextFormField(
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Taille (en m)'),
+              decoration: InputDecoration(labelText: 'Enter Height (m)'),
+              onChanged: (value) {
+                setState(() {
+                  height = double.parse(value);
+                });
+              },
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
                 calculateBMI();
+                fetchIMCCategories(); // Call this method if you want to fetch IMC categories from an API
               },
-              child: Text('Calculer l\'IMC'),
+              child: Text('Calculate BMI'),
             ),
-            SizedBox(height: 16.0),
-            Text('IMC : ${bmiResult.toStringAsFixed(2)}'),
-            SizedBox(height: 16.0),
-            Text(getBMIStatus()),
+            SizedBox(height: 20.0),
+            Text('BMI: $bmi'),
+            Text('Category: $bmiCategory'),
           ],
         ),
       ),
@@ -67,23 +77,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void calculateBMI() {
-    double weight = double.parse(weightController.text);
-    double height = double.parse(heightController.text);
-
     setState(() {
-      bmiResult = weight / (height * height);
+      bmi = weight / (height * height);
+      // Logic to categorize BMI
+      if (bmi < 18.5) {
+        bmiCategory = 'Underweight';
+      } else if (bmi >= 18.5 && bmi < 25) {
+        bmiCategory = 'Normal';
+      } else if (bmi >= 25 && bmi < 30) {
+        bmiCategory = 'Overweight';
+      } else {
+        bmiCategory = 'Obese';
+      }
     });
   }
 
-  String getBMIStatus() {
-    if (bmiResult < 18.5) {
-      return 'Insuffisance pondérale';
-    } else if (bmiResult >= 18.5 && bmiResult < 24.9) {
-      return 'Normal';
-    } else if (bmiResult >= 25 && bmiResult < 29.9) {
-      return 'Surpoids';
-    } else {
-      return 'Obésité';
+  Future<void> fetchIMCCategories() async {
+    try {
+      final response = await http.get(Uri.parse('your_api_endpoint_here'));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        // Process the data if needed
+      } else {
+        throw Exception('Failed to load IMC categories');
+      }
+    } catch (e) {
+      print('Error: $e');
     }
   }
 }
