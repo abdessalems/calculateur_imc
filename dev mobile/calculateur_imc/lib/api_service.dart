@@ -1,26 +1,52 @@
 import 'dart:convert';
+import 'package:calculateur_imc/user.dart';
 import 'package:http/http.dart' as http;
 
-Future<Map<String, dynamic>> getIMCCategories() async {
-  final response = await http.get(Uri.parse('your_api_endpoint_here'));
+class APIService {
+  static const String baseUrl = 'http://localhost:3000';
 
-  if (response.statusCode == 200) {
-    return json.decode(response.body);
-  } else {
-    throw Exception('Failed to load IMC categories');
+  Future<List<User>> getUsers() async {
+    final response = await http.get(Uri.parse('$baseUrl/users'));
+    if (response.statusCode == 200) {
+      Iterable jsonResponse = json.decode(response.body);
+      return jsonResponse.map((user) => User.fromJson(user)).toList();
+    } else {
+      throw Exception('Failed to load users');
+    }
   }
 
-  
-}
-String getBMICategory(double bmi) {
-  if (bmi < 18.5) {
-    return 'Underweight';
-  } else if (bmi >= 18.5 && bmi < 24.9) {
-    return 'Normal Weight';
-  } else if (bmi >= 25 && bmi < 29.9) {
-    return 'Overweight';
-  } else {
-    return 'Obese';
+   Future<User> createUser(User user) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/users'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(user.toJson()),
+    );
+    if (response.statusCode == 201) {
+      return User.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create user');
+    }
+  }
+
+  Future<User> updateUser(User user) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/users/${user.id}'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(user.toJson()),
+    );
+    if (response.statusCode == 200) {
+      return User.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to update user');
+    }
+  }
+
+  Future<void> deleteUser(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/users/$id'),
+    );
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete user');
+    }
   }
 }
-

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "17964343441",
+    "project_id": "calculateurimc-24b12",
+    "storage_bucket": "calculateurimc-24b12.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17964343441:android:753857575171a5e8f75f30",
+        "android_client_info": {
+          "package_name": "com.example.calculateur_imc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDu0XBsyHsgZHqOw8LgOD-P5LrFuqzFb-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
