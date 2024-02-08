@@ -3,51 +3,31 @@
     {
       "id": 1,
       "name": "SAADAOUI",
-      "age": 25,
+      "age": 23,
       "height": 180,
-      "weight": 70
+      "weight": 75
     },
     {
       "id": 2,
       "name": "SAADAOUI",
-      "age": 20,
-      "height": 180,
-      "weight": 20
+      "age": 17,
+      "height": 170,
+      "weight": 80
     },
     {
       "id": 3,
-      "name": "saadaoui",
-      "age": 17,
-      "height": 188,
-      "weight": 70
-    },
-    {
-      "id": 1,
-      "name": "mouadh",
-      "age": 24,
-      "height": 175,
-      "weight": 78
-    },
-    {
-      "id": 1,
-      "name": "YASSINE ",
-      "age": 22,
+      "name": "AAA",
+      "age": 32,
       "height": 180,
-      "weight": 78
+      "weight": 79
     },
     {
       "id": 4,
       "name": "SAADAOUI",
-      "age": 20,
+      "age": 12,
       "height": 180,
-      "weight": 76
-    },
-    {
-      "id": 5,
-      "name": "AAA",
-      "age": 11,
-      "height": 123,
-      "weight": 465
+      "weight": 45
     }
+    
   ]
 }

@@ -16,11 +16,11 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      name: json['name'],
-      age: json['age'],
-      height: json['height'],
-      weight: json['weight'],
+      id: json['id'] as int,
+      name: json['name'] as String,
+      age: json['age'] as int,
+      height: (json['height'] as num).toDouble(),
+      weight: (json['weight'] as num).toDouble(),
     );
   }
 
@@ -34,6 +34,7 @@ class User {
 
   // Method to calculate BMI
   double calculateBMI() {
-    return weight / ((height / 100) * (height / 100)); // Convert height from cm to m
+    return weight /
+        ((height / 100) * (height / 100)); // Convert height from cm to m
   }
 }
