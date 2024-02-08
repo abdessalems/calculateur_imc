@@ -11,6 +11,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late APIService _apiService;
   List<User> _users = [];
+    int _nextId = 1; // Initialize the ID counter
 
   @override
   void initState() {
@@ -25,19 +26,30 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _users = users;
       });
+      // Find the highest ID among the loaded users
+      int maxId = _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
+
+      // Increment the next ID counter to one greater than the highest ID
+      _nextId = maxId + 1;
     } catch (e) {
       print('Error loading users: $e');
     }
   }
 
+
   Future<void> _addUser(User user) async {
-    try {
-      await _apiService.createUser(user);
-      _loadUsers();
-    } catch (e) {
-      print('Error: $e');
-    }
+  try {
+    // Set the ID of the new user to the next available ID
+    user.id = _nextId;
+    _nextId++; // Increment the ID counter for the next user
+    await _apiService.createUser(user);
+    _loadUsers();
+  } catch (e) {
+    print('Error: $e');
   }
+}
+
+
 
   Future<void> _updateUser(User user) async {
     try {
@@ -48,17 +60,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _deleteUser(int id) async {
+ Future<void> _deleteUser(int id) async {
   try {
     await _apiService.deleteUser(id);
     setState(() {
       _users.removeWhere((user) => user.id == id);
     });
+
+    // Recalculate _nextId if the deleted user had the highest ID
+    if (id == _nextId - 1) {
+      int maxId = _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
+      _nextId = maxId + 1;
+    }
   } catch (e) {
-    // Handle error
     print('Error deleting user: $e');
   }
 }
+
 
 
   @override
