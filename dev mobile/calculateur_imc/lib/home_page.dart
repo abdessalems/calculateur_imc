@@ -11,7 +11,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late APIService _apiService;
   List<User> _users = [];
-  int _nextId = 1; // Initialize the ID counter
+  String _nextId = '1'; // Initialize the ID counter as a string
 
   @override
   void initState() {
@@ -27,11 +27,20 @@ class _HomePageState extends State<HomePage> {
         _users = users;
       });
       // Find the highest ID among the loaded users
-      int maxId =
-          _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
+      int maxId = _users.fold(
+        0,
+        (prev, user) {
+          try {
+            int userId = int.parse(user.id);
+            return userId > prev ? userId : prev;
+          } catch (_) {
+            return prev;
+          }
+        },
+      );
 
       // Increment the next ID counter to one greater than the highest ID
-      _nextId = maxId + 1;
+      _nextId = (maxId + 1).toString();
     } catch (e) {
       print('Error loading users: $e');
     }
@@ -43,15 +52,16 @@ class _HomePageState extends State<HomePage> {
       user.id = _nextId;
       await _apiService.createUser(user);
       _loadUsers();
-      _nextId++; // Increment the ID counter for the next user
+      _nextId = (int.parse(_nextId) + 1)
+          .toString(); // Increment the ID counter for the next user
     } catch (e) {
       print('Error adding user: $e');
     }
   }
 
-  Future<void> _deleteUser(int id) async {
+  Future<void> _deleteUser(String id) async {
     try {
-      await _apiService.deleteUser(id);
+      await _apiService.deleteUser(int.parse(id));
       setState(() {
         _users.removeWhere((user) => user.id == id);
       });
@@ -78,6 +88,9 @@ class _HomePageState extends State<HomePage> {
       body: ListView.builder(
         itemCount: _users.length,
         itemBuilder: (context, index) {
+          // Calculate BMI category for the user
+          String bmiCategory = _calculateBMICategory(_users[index]);
+
           return ListTile(
             title: Text(_users[index].name),
             subtitle: Column(
@@ -87,6 +100,7 @@ class _HomePageState extends State<HomePage> {
                 Text('Height: ${_users[index].height} cm'),
                 Text('Weight: ${_users[index].weight} kg'),
                 Text('BMI: ${_calculateBMI(_users[index]) ?? 'N/A'}'),
+                Text('BMI Category: $bmiCategory'),
               ],
             ),
             trailing: Row(
@@ -119,7 +133,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _addUserDialog() async {
-    User newUser = User(id: 0, name: '', age: 0, height: 0, weight: 0);
+    User newUser = User(id: '0', name: '', age: 0, height: 0, weight: 0);
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -177,16 +191,19 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  double? _calculateBMI(User user) {
-    if (user.height != null && user.weight != null) {
-      return BMICalculator.calculateBMI(user.weight!, user.height!);
-    }
-    return null;
-  }
-
   Future<void> _editUser(User user) async {
     // Create a copy of the user to edit
     User editedUser = User.fromUser(user);
+
+    // Controllers to track changes in the fields
+    TextEditingController nameController =
+        TextEditingController(text: editedUser.name);
+    TextEditingController ageController =
+        TextEditingController(text: editedUser.age.toString());
+    TextEditingController heightController =
+        TextEditingController(text: editedUser.height.toString());
+    TextEditingController weightController =
+        TextEditingController(text: editedUser.weight.toString());
 
     await showDialog(
       context: context,
@@ -200,45 +217,22 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   TextField(
                     decoration: InputDecoration(labelText: 'Name'),
-                    controller: TextEditingController(text: editedUser.name),
-                    onChanged: (value) {
-                      setState(() {
-                        editedUser.name = value;
-                      });
-                    },
+                    controller: nameController,
                   ),
                   TextField(
                     decoration: InputDecoration(labelText: 'Age'),
                     keyboardType: TextInputType.number,
-                    controller:
-                        TextEditingController(text: editedUser.age.toString()),
-                    onChanged: (value) {
-                      setState(() {
-                        editedUser.age = int.parse(value);
-                      });
-                    },
+                    controller: ageController,
                   ),
                   TextField(
                     decoration: InputDecoration(labelText: 'Height'),
                     keyboardType: TextInputType.number,
-                    controller: TextEditingController(
-                        text: editedUser.height.toString()),
-                    onChanged: (value) {
-                      setState(() {
-                        editedUser.height = double.parse(value);
-                      });
-                    },
+                    controller: heightController,
                   ),
                   TextField(
                     decoration: InputDecoration(labelText: 'Weight'),
                     keyboardType: TextInputType.number,
-                    controller: TextEditingController(
-                        text: editedUser.weight.toString()),
-                    onChanged: (value) {
-                      setState(() {
-                        editedUser.weight = double.parse(value);
-                      });
-                    },
+                    controller: weightController,
                   ),
                 ],
               ),
@@ -251,6 +245,11 @@ class _HomePageState extends State<HomePage> {
                 ),
                 TextButton(
                   onPressed: () {
+                    // Update the user with the edited values
+                    editedUser.name = nameController.text;
+                    editedUser.age = int.parse(ageController.text);
+                    editedUser.height = double.parse(heightController.text);
+                    editedUser.weight = double.parse(weightController.text);
                     _updateUser(editedUser);
                     Navigator.of(context).pop();
                   },
@@ -262,5 +261,35 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  // Method to calculate BMI category based on BMI value
+  String _calculateBMICategory(User user) {
+    if (user.height != null && user.weight != null) {
+      double bmi = BMICalculator.calculateBMI(user.weight!, user.height!);
+      return _getBMICategory(bmi);
+    }
+    return 'N/A';
+  }
+
+  // Method to get BMI category label
+  String _getBMICategory(double bmi) {
+    if (bmi < 18.5) {
+      return 'Underweight';
+    } else if (bmi < 24.9) {
+      return 'Healthy Weight';
+    } else if (bmi < 29.9) {
+      return 'Overweight';
+    } else {
+      return 'Obesity';
+    }
+  }
+
+  String _calculateBMI(User user) {
+    if (user.height != null && user.weight != null) {
+      double bmi = BMICalculator.calculateBMI(user.weight!, user.height!);
+      return bmi.toStringAsFixed(2); // Limit to 2 decimal places
+    }
+    return 'N/A';
   }
 }

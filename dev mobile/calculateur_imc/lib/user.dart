@@ -1,6 +1,5 @@
-// USER
 class User {
-  int id;
+  String id; // Change the type of 'id' to String
   String name;
   int age;
   double height;
@@ -24,7 +23,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as int,
+      id: json['id'].toString(), // Ensure 'id' is stored as a string
       name: json['name'] as String,
       age: json['age'] as int,
       height: (json['height'] as num).toDouble(),

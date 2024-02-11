@@ -1,39 +1,18 @@
 {
   "users": [
     {
-      "id": 1,
-      "name": "SAADAOUI",
-      "age": 23,
+      "id": "1",
+      "name": "JohnNNN AAA",
+      "age": 30,
       "height": 180,
       "weight": 75
     },
     {
-      "id": 2,
-      "name": "SAADAOUI",
-      "age": 17,
-      "height": 170,
-      "weight": 80
-    },
-    {
-      "id": 3,
-      "name": "AAA",
-      "age": 32,
-      "height": 180,
-      "weight": 79
-    },
-    {
-      "id": 4,
-      "name": "SAADAOUI",
-      "age": 12,
-      "height": 180,
-      "weight": 45
-    },
-    {
-      "id": 5,
-      "name": "NUM5",
-      "age": 18,
-      "height": 190,
-      "weight": 40
+      "id": "2",
+      "name": "Alice",
+      "age": 25,
+      "height": 160,
+      "weight": 60
     }
   ]
 }
