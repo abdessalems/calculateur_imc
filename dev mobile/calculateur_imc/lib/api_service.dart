@@ -38,6 +38,22 @@ class APIService {
     }
   }
 
+  Future<User> getUserById(int id) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/users/$id'));
+      if (response.statusCode == 200) {
+        return User.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 404) {
+        throw Exception('User with ID $id not found');
+      } else {
+        throw Exception(
+            'Failed to get user. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting user: $e');
+    }
+  }
+
   Future<User> createUser(User user) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users'),
@@ -52,13 +68,21 @@ class APIService {
   }
 
   Future<void> deleteUser(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/users/$id'),
-    );
-    if (response.statusCode == 404) {
-      throw Exception('User with ID $id not found');
-    } else if (response.statusCode != 204) {
-      throw Exception('Failed to delete user');
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/$id'),
+      );
+      if (response.statusCode == 204) {
+        // User successfully deleted
+        print('User with ID $id deleted successfully');
+      } else if (response.statusCode == 404) {
+        throw Exception('User with ID $id not found');
+      } else {
+        throw Exception(
+            'Failed to delete user. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error deleting user: $e');
     }
   }
 }

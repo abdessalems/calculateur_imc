@@ -11,7 +11,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late APIService _apiService;
   List<User> _users = [];
-    int _nextId = 1; // Initialize the ID counter
+  int _nextId = 1; // Initialize the ID counter
 
   @override
   void initState() {
@@ -27,7 +27,8 @@ class _HomePageState extends State<HomePage> {
         _users = users;
       });
       // Find the highest ID among the loaded users
-      int maxId = _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
+      int maxId =
+          _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
 
       // Increment the next ID counter to one greater than the highest ID
       _nextId = maxId + 1;
@@ -36,20 +37,28 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   Future<void> _addUser(User user) async {
-  try {
-    // Set the ID of the new user to the next available ID
-    user.id = _nextId;
-    _nextId++; // Increment the ID counter for the next user
-    await _apiService.createUser(user);
-    _loadUsers();
-  } catch (e) {
-    print('Error: $e');
+    try {
+      // Set the ID of the new user to the next available ID
+      user.id = _nextId;
+      await _apiService.createUser(user);
+      _loadUsers();
+      _nextId++; // Increment the ID counter for the next user
+    } catch (e) {
+      print('Error adding user: $e');
+    }
   }
-}
 
-
+  Future<void> _deleteUser(int id) async {
+    try {
+      await _apiService.deleteUser(id);
+      setState(() {
+        _users.removeWhere((user) => user.id == id);
+      });
+    } on Exception catch (e) {
+      print('Error deleting user: $e');
+    }
+  }
 
   Future<void> _updateUser(User user) async {
     try {
@@ -59,25 +68,6 @@ class _HomePageState extends State<HomePage> {
       print('Error: $e');
     }
   }
-
- Future<void> _deleteUser(int id) async {
-  try {
-    await _apiService.deleteUser(id);
-    setState(() {
-      _users.removeWhere((user) => user.id == id);
-    });
-
-    // Recalculate _nextId if the deleted user had the highest ID
-    if (id == _nextId - 1) {
-      int maxId = _users.fold(0, (prev, user) => user.id > prev ? user.id : prev);
-      _nextId = maxId + 1;
-    }
-  } catch (e) {
-    print('Error deleting user: $e');
-  }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -194,76 +184,83 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
- 
- Future<void> _editUser(User user) async {
-  User editedUser = user;
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Edit User'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: InputDecoration(labelText: 'Name'),
-              controller: TextEditingController(text: editedUser.name),
-              onChanged: (value) {
-                setState(() {
-                  editedUser.name = value;
-                });
-              },
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Age'),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: editedUser.age.toString()),
-              onChanged: (value) {
-                setState(() {
-                  editedUser.age = int.parse(value);
-                });
-              },
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Height'),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: editedUser.height.toString()),
-              onChanged: (value) {
-                setState(() {
-                  editedUser.height = double.parse(value);
-                });
-              },
-            ),
-            TextField(
-              decoration: InputDecoration(labelText: 'Weight'),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: editedUser.weight.toString()),
-              onChanged: (value) {
-                setState(() {
-                  editedUser.weight = double.parse(value);
-                });
-              },
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              _updateUser(editedUser);
-              Navigator.of(context).pop();
-            },
-            child: Text('Save'),
-          ),
-        ],
-      );
-    },
-  );
-}
+  Future<void> _editUser(User user) async {
+    // Create a copy of the user to edit
+    User editedUser = User.fromUser(user);
 
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Edit User'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Name'),
+                    controller: TextEditingController(text: editedUser.name),
+                    onChanged: (value) {
+                      setState(() {
+                        editedUser.name = value;
+                      });
+                    },
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Age'),
+                    keyboardType: TextInputType.number,
+                    controller:
+                        TextEditingController(text: editedUser.age.toString()),
+                    onChanged: (value) {
+                      setState(() {
+                        editedUser.age = int.parse(value);
+                      });
+                    },
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Height'),
+                    keyboardType: TextInputType.number,
+                    controller: TextEditingController(
+                        text: editedUser.height.toString()),
+                    onChanged: (value) {
+                      setState(() {
+                        editedUser.height = double.parse(value);
+                      });
+                    },
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Weight'),
+                    keyboardType: TextInputType.number,
+                    controller: TextEditingController(
+                        text: editedUser.weight.toString()),
+                    onChanged: (value) {
+                      setState(() {
+                        editedUser.weight = double.parse(value);
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _updateUser(editedUser);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 }

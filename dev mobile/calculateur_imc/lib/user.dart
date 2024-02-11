@@ -14,6 +14,14 @@ class User {
     required this.weight,
   });
 
+  // Copy constructor
+  User.fromUser(User user)
+      : id = user.id,
+        name = user.name,
+        age = user.age,
+        height = user.height,
+        weight = user.weight;
+
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as int,
